@@ -4,6 +4,7 @@ import { getExpenses, getCategories } from './utils/localStorage';
 import ExpensesList from './components/ExpensesList';
 import Analytics from './components/Analytics';
 import AddExpense from './components/AddExpense';
+import DataManager from './components/DataManager';
 import TabNavigation from './components/TabNavigation';
 import './App.css';
 
@@ -17,8 +18,9 @@ const App = () => {
     setCategories(getCategories());
   }, []);
 
-  const refreshExpenses = () => {
+  const refreshData = () => {
     setExpenses(getExpenses());
+    setCategories(getCategories());
   };
 
   return (
@@ -37,7 +39,7 @@ const App = () => {
           <ExpensesList 
             expenses={expenses} 
             categories={categories}
-            onExpensesChange={refreshExpenses}
+            onExpensesChange={refreshData}
           />
         )}
         
@@ -48,8 +50,12 @@ const App = () => {
         {activeTab === 'add' && (
           <AddExpense 
             categories={categories} 
-            onExpenseAdded={refreshExpenses} 
+            onExpenseAdded={refreshData} 
           />
+        )}
+        
+        {activeTab === 'data' && (
+          <DataManager onDataChange={refreshData} />
         )}
       </main>
     </div>

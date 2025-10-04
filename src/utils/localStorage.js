@@ -1,14 +1,14 @@
 // src/utils/localStorage.js
 
-const EXPENSES_KEY = "expense-tracker-expenses";
-const CATEGORIES_KEY = "expense-tracker-categories";
+const EXPENSES_KEY = 'expense-tracker-expenses';
+const CATEGORIES_KEY = 'expense-tracker-categories';
 
 export const getExpenses = () => {
   try {
     const data = localStorage.getItem(EXPENSES_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error("Error loading expenses:", error);
+    console.error('Error loading expenses:', error);
     return [];
   }
 };
@@ -17,7 +17,7 @@ export const saveExpenses = (expenses) => {
   try {
     localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
   } catch (error) {
-    console.error("Error saving expenses:", error);
+    console.error('Error saving expenses:', error);
   }
 };
 
@@ -27,50 +27,191 @@ export const addExpense = (expense) => {
   saveExpenses(expenses);
 };
 
-// Новая функция для удаления расхода
 export const deleteExpense = (expenseId) => {
   const expenses = getExpenses();
-  const filteredExpenses = expenses.filter(
-    (expense) => expense.id !== expenseId
-  );
+  const filteredExpenses = expenses.filter(expense => expense.id !== expenseId);
   saveExpenses(filteredExpenses);
 };
 
-// Новая функция для обновления расхода
 export const updateExpense = (expenseId, updatedExpense) => {
   const expenses = getExpenses();
-  const updatedExpenses = expenses.map((expense) =>
+  const updatedExpenses = expenses.map(expense => 
     expense.id === expenseId ? { ...expense, ...updatedExpense } : expense
   );
   saveExpenses(updatedExpenses);
 };
 
 export const getCategories = () => {
-  const defaultCategories = [
-    { id: "1", name: "Дети", color: "#FFD700", icon: "👶" },
-    { id: "2", name: "Дом, уют", color: "#9B59B6", icon: "🏠" },
-    { id: "3", name: "Забота о себе", color: "#F8BBD0", icon: "💅" },
-    { id: "4", name: "Здоровье", color: "#E91E63", icon: "💊" },
-    { id: "5", name: "Кафе и рестораны", color: "#F44336", icon: "🍽️" },
-    { id: "6", name: "Коммуналка", color: "#673AB7", icon: "🏡" },
-    { id: "7", name: "Корректировка", color: "#9E9E9E", icon: "❓" },
-    { id: "8", name: "Машина", color: "#2196F3", icon: "🚗" },
-    { id: "9", name: "Образование", color: "#009688", icon: "📚" },
-    { id: "10", name: "Платежи, комиссии", color: "#607D8B", icon: "💳" },
-    { id: "11", name: "Подарки", color: "#4CAF50", icon: "🎁" },
-    { id: "12", name: "Подписки", color: "#9C27B0", icon: "📱" },
-    { id: "13", name: "Покупки", color: "#4CAF50", icon: "🛍️" },
-    { id: "14", name: "Продукты", color: "#FF9800", icon: "🛒" },
-    { id: "15", name: "Путешествия", color: "#00BCD4", icon: "✈️" },
-    { id: "16", name: "Развлечения", color: "#87CEEB", icon: "🎮" },
-    { id: "17", name: "Транспорт", color: "#3F51B5", icon: "🚌" },
-    { id: "18", name: "Другое", color: "#E0E0E0", icon: "📦" },
-  ];
+  try {
+    const data = localStorage.getItem(CATEGORIES_KEY);
+    if (data) {
+      return JSON.parse(data);
+    } else {
+      // Категории на основе изображения
+      const defaultCategories = [
+        { id: '1', name: 'Дети', color: '#FFD700', icon: '👶' },
+        { id: '2', name: 'Дом, уют', color: '#9B59B6', icon: '🏠' },
+        { id: '3', name: 'Забота о себе', color: '#F8BBD0', icon: '💅' },
+        { id: '4', name: 'Здоровье', color: '#E91E63', icon: '💊' },
+        { id: '5', name: 'Кафе и рестораны', color: '#F44336', icon: '🍽️' },
+        { id: '6', name: 'Коммуналка', color: '#673AB7', icon: '🏡' },
+        { id: '7', name: 'Корректировка', color: '#9E9E9E', icon: '❓' },
+        { id: '8', name: 'Машина', color: '#2196F3', icon: '🚗' },
+        { id: '9', name: 'Образование', color: '#009688', icon: '📚' },
+        { id: '10', name: 'Платежи, комиссии', color: '#607D8B', icon: '💳' },
+        { id: '11', name: 'Подарки', color: '#4CAF50', icon: '🎁' },
+        { id: '12', name: 'Подписки', color: '#9C27B0', icon: '📱' },
+        { id: '13', name: 'Покупки', color: '#4CAF50', icon: '🛍️' },
+        { id: '14', name: 'Продукты', color: '#FF9800', icon: '🛒' },
+        { id: '15', name: 'Путешествия', color: '#00BCD4', icon: '✈️' },
+        { id: '16', name: 'Развлечения', color: '#87CEEB', icon: '🎮' },
+        { id: '17', name: 'Транспорт', color: '#3F51B5', icon: '🚌' },
+        { id: '18', name: 'Другое', color: '#E0E0E0', icon: '📦' }
+      ];
+      
+      saveCategories(defaultCategories);
+      return defaultCategories;
+    }
+  } catch (error) {
+    console.error('Error loading categories:', error);
+    return [];
+  }
+};
 
-  return defaultCategories;
+export const saveCategories = (categories) => {
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+  } catch (error) {
+    console.error('Error saving categories:', error);
+  }
 };
 
 // Утилита для форматирования валюты
 export const formatCurrency = (amount) => {
-  return `${amount.toLocaleString("ru-RU")} BYN`;
+  return `${amount.toLocaleString('ru-RU')} BYN`;
+};
+
+// Новые функции для экспорта и импорта
+export const exportData = () => {
+  try {
+    const expenses = getExpenses();
+    const categories = getCategories();
+    
+    const exportData = {
+      expenses,
+      categories,
+      exportDate: new Date().toISOString(),
+      version: '1.0',
+      appName: 'Expense Tracker'
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `expense-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    return true;
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    return false;
+  }
+};
+
+export const importData = (file) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target.result);
+          
+          // Валидация структуры данных
+          if (!importedData.expenses || !importedData.categories) {
+            throw new Error('Неверная структура файла');
+          }
+          
+          // Проверяем что это наш формат
+          if (importedData.appName !== 'Expense Tracker') {
+            throw new Error('Файл не от приложения Expense Tracker');
+          }
+          
+          // Валидация данных расходов
+          const validExpenses = importedData.expenses.filter(expense => 
+            expense.id && 
+            typeof expense.amount === 'number' && 
+            expense.category && 
+            expense.date
+          );
+          
+          // Валидация категорий
+          const validCategories = importedData.categories.filter(category =>
+            category.id &&
+            category.name &&
+            category.color &&
+            category.icon
+          );
+          
+          if (validExpenses.length === 0 && validCategories.length === 0) {
+            throw new Error('Файл не содержит валидных данных');
+          }
+          
+          resolve({
+            expenses: validExpenses,
+            categories: validCategories,
+            importDate: importedData.exportDate
+          });
+          
+        } catch (parseError) {
+          reject(new Error('Ошибка чтения файла: ' + parseError.message));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Ошибка чтения файла'));
+      };
+      
+      reader.readAsText(file);
+      
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export const mergeImportedData = (importedData, mergeMode = 'merge') => {
+  try {
+    if (mergeMode === 'replace') {
+      // Заменяем все данные
+      saveExpenses(importedData.expenses);
+      saveCategories(importedData.categories);
+    } else {
+      // Объединяем данные
+      const currentExpenses = getExpenses();
+      const currentCategories = getCategories();
+      
+      // Объединяем расходы (избегаем дубликатов по ID)
+      const existingExpenseIds = new Set(currentExpenses.map(exp => exp.id));
+      const newExpenses = importedData.expenses.filter(exp => !existingExpenseIds.has(exp.id));
+      const mergedExpenses = [...currentExpenses, ...newExpenses];
+      
+      // Объединяем категории (избегаем дубликатов по имени)
+      const existingCategoryNames = new Set(currentCategories.map(cat => cat.name));
+      const newCategories = importedData.categories.filter(cat => !existingCategoryNames.has(cat.name));
+      const mergedCategories = [...currentCategories, ...newCategories];
+      
+      saveExpenses(mergedExpenses);
+      saveCategories(mergedCategories);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error merging imported data:', error);
+    return false;
+  }
 };

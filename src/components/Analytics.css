@@ -140,4 +140,8 @@
     grid-template-columns: 1fr;
     gap: 15px;
   }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
 }

@@ -1,6 +1,6 @@
 // src/components/TabNavigation.jsx
 import React from 'react';
-import { List, BarChart3, Plus } from 'lucide-react';
+import { List, BarChart3, Plus, Settings } from 'lucide-react';
 import './TabNavigation.css';
 
 const TabNavigation = ({ activeTab, setActiveTab }) => {
@@ -28,6 +28,14 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
       >
         <Plus size={20} />
         Добавить
+      </button>
+      
+      <button
+        className={`tab-button ${activeTab === 'data' ? 'active' : ''}`}
+        onClick={() => setActiveTab('data')}
+      >
+        <Settings size={20} />
+        Данные
       </button>
     </nav>
   );
