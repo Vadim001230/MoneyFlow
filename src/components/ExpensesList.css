@@ -1,0 +1,286 @@
+/* src/components/ExpensesList.css */
+.expenses-list {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.expenses-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.expenses-summary h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.total-amount {
+  font-size: 1.2rem;
+}
+
+.expense-day-group {
+  margin-bottom: 20px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 4px solid #4ECDC4;
+}
+
+.day-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.day-total {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.expenses-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expense-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+.expense-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.expense-item.editing {
+  padding: 20px;
+  background: #f8f9fa;
+  border: 2px solid #4ECDC4;
+}
+
+.expense-category {
+  width: 55px;
+  height: 55px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+
+.category-icon {
+  font-size: 1.4rem;
+}
+
+.expense-details {
+  flex: 1;
+}
+
+.expense-category-main {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 3px;
+  font-size: 1.1rem;
+}
+
+.expense-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.expense-time {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.expense-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.expense-amount {
+  font-weight: bold;
+  color: #e74c3c;
+  font-size: 1.1rem;
+  margin-right: 10px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  background: #4ECDC4;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #45b7aa;
+  transform: scale(1.05);
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+  transform: scale(1.05);
+}
+
+.save-btn {
+  background: #27ae60;
+  color: white;
+  padding: 10px;
+}
+
+.save-btn:hover {
+  background: #229954;
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+  padding: 10px;
+}
+
+.cancel-btn:hover {
+  background: #7f8c8d;
+}
+
+/* Стили формы редактирования */
+.expense-edit-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.edit-select {
+  flex: 2;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.edit-amount {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.edit-description {
+  flex: 2;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.edit-date {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .expense-item {
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+  }
+
+  .expense-category {
+    width: 45px;
+    height: 45px;
+    align-self: flex-start;
+    margin-right: 12px;
+  }
+
+  .expense-actions {
+    margin-top: 10px;
+    justify-content: space-between;
+  }
+
+  .edit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edit-select,
+  .edit-amount,
+  .edit-description,
+  .edit-date {
+    flex: none;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-emoji {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
