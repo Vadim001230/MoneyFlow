@@ -2,11 +2,13 @@
 import React, { useMemo, useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { formatCurrency } from "../utils/localStorage";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./Analytics.css";
 
 const Analytics = ({ expenses, categories }) => {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     const checkMobile = () => {
@@ -26,6 +28,52 @@ const Analytics = ({ expenses, categories }) => {
     }, {});
   }, [categories]);
 
+  // Функция для получения списка доступных месяцев
+  const availableMonths = useMemo(() => {
+    if (!expenses.length) return [];
+
+    const months = expenses.map((exp) => {
+      const date = new Date(exp.date);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
+    });
+
+    const uniqueMonths = [...new Set(months)].sort().reverse();
+
+    return uniqueMonths.map((monthStr) => {
+      const [year, month] = monthStr.split("-");
+      return new Date(parseInt(year), parseInt(month) - 1, 1);
+    });
+  }, [expenses]);
+
+  // Функция для перехода к предыдущему месяцу
+  const goToPreviousMonth = () => {
+    setSelectedDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  // Функция для перехода к следующему месяцу
+  const goToNextMonth = () => {
+    setSelectedDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + 1);
+      return newDate;
+    });
+  };
+
+  // Проверка, можно ли перейти к следующему месяцу
+  const canGoNext = useMemo(() => {
+    const now = new Date();
+    const currentMonthYear = `${now.getFullYear()}-${now.getMonth()}`;
+    const selectedMonthYear = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
+    return selectedMonthYear < currentMonthYear;
+  }, [selectedDate]);
+
   // Функция для фильтрации расходов по периоду
   const getFilteredExpenses = useMemo(() => {
     if (!expenses.length) return [];
@@ -43,12 +91,32 @@ const Analytics = ({ expenses, categories }) => {
       endDate = new Date();
       endDate.setHours(23, 59, 59, 999);
     } else if (selectedPeriod === "month") {
-      // Первое число текущего месяца
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      // Первое число выбранного месяца
+      startDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        1
+      );
       startDate.setHours(0, 0, 0, 0);
-      // Последнее число текущего месяца
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      endDate.setHours(23, 59, 59, 999);
+
+      // Проверяем, текущий ли это месяц
+      const isCurrentMonth =
+        selectedDate.getFullYear() === now.getFullYear() &&
+        selectedDate.getMonth() === now.getMonth();
+
+      if (isCurrentMonth) {
+        // Если текущий месяц - до сегодняшнего дня
+        endDate = new Date();
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        // Если не текущий - до последнего дня месяца
+        endDate = new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth() + 1,
+          0
+        );
+        endDate.setHours(23, 59, 59, 999);
+      }
     } else {
       // 'all' или default
       return expenses;
@@ -58,7 +126,7 @@ const Analytics = ({ expenses, categories }) => {
       const expenseDate = new Date(expense.date);
       return expenseDate >= startDate && expenseDate <= endDate;
     });
-  }, [expenses, selectedPeriod]);
+  }, [expenses, selectedPeriod, selectedDate]);
 
   // Данные для круговой диаграммы по категориям
   const categoryData = useMemo(() => {
@@ -94,9 +162,28 @@ const Analytics = ({ expenses, categories }) => {
       startDate = new Date(today.setDate(diff));
       days = 7;
     } else if (selectedPeriod === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      // Количество дней в текущем месяце
-      days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      startDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        1
+      );
+
+      // Проверяем, текущий ли это месяц
+      const isCurrentMonth =
+        selectedDate.getFullYear() === now.getFullYear() &&
+        selectedDate.getMonth() === now.getMonth();
+
+      if (isCurrentMonth) {
+        // Если текущий месяц - количество дней до сегодня
+        days = now.getDate();
+      } else {
+        // Если не текущий - все дни месяца
+        days = new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth() + 1,
+          0
+        ).getDate();
+      }
     } else {
       // 'all' или default
       if (getFilteredExpenses.length === 0) return { dates: [], values: [] };
@@ -145,23 +232,21 @@ const Analytics = ({ expenses, categories }) => {
       dates: sortedDates.map(formatDate),
       values,
     };
-  }, [getFilteredExpenses, selectedPeriod]);
+  }, [getFilteredExpenses, selectedPeriod, selectedDate]);
 
   // Получаем название периода для отображения
   const getPeriodTitle = () => {
-    const now = new Date();
-    switch (selectedPeriod) {
-      case "week":
-        return "за эту неделю";
-      case "month":
-        return `за ${now.toLocaleDateString("ru-RU", {
-          month: "long",
-          year: "numeric",
-        })}`;
-      case "all":
-        return "за все время";
-      default:
-        return "";
+    if (selectedPeriod === "week") {
+      return "за эту неделю";
+    } else if (selectedPeriod === "month") {
+      const monthStr = selectedDate.toLocaleDateString("ru-RU", {
+        month: "long",
+        year: "numeric",
+      });
+
+      return `за ${monthStr}`;
+    } else {
+      return "за все время";
     }
   };
 
@@ -238,22 +323,19 @@ const Analytics = ({ expenses, categories }) => {
         emphasis: {
           label: {
             show: true,
-            fontSize: isMobile ? 10 : 14, // Контролируем размер шрифта при ховере
+            fontSize: isMobile ? 10 : 14,
             fontWeight: "bold",
             formatter: (params) => {
               const percent = params.percent;
 
               if (isMobile) {
-                // На мобильных при ховере показываем процент и название категории
                 return `${percent}%\n${params.name}`;
               } else {
-                // На десктопе при ховере показываем процент и сумму
                 const value = params.value;
-                return `${percent}%\n${formatCurrency(value)}`;
+                return `${percent}%\n${params.name}\n${formatCurrency(value)}`;
               }
             },
           },
-          // Можно также управлять увеличением сектора при ховере
           scaleSize: isMobile ? 5 : 10,
         },
         labelLine: {
@@ -358,7 +440,10 @@ const Analytics = ({ expenses, categories }) => {
             className={`period-btn ${
               selectedPeriod === "week" ? "active" : ""
             }`}
-            onClick={() => setSelectedPeriod("week")}
+            onClick={() => {
+              setSelectedPeriod("week");
+              setSelectedDate(new Date());
+            }}
           >
             Неделя
           </button>
@@ -366,7 +451,10 @@ const Analytics = ({ expenses, categories }) => {
             className={`period-btn ${
               selectedPeriod === "month" ? "active" : ""
             }`}
-            onClick={() => setSelectedPeriod("month")}
+            onClick={() => {
+              setSelectedPeriod("month");
+              setSelectedDate(new Date());
+            }}
           >
             Месяц
           </button>
@@ -377,6 +465,31 @@ const Analytics = ({ expenses, categories }) => {
             Все время
           </button>
         </div>
+
+        {selectedPeriod === "month" && (
+          <div className="month-navigator">
+            <button
+              className="nav-btn"
+              onClick={goToPreviousMonth}
+              disabled={availableMonths.length === 0}
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <div className="current-month">
+              {selectedDate.toLocaleDateString("ru-RU", {
+                month: "long",
+                year: "numeric",
+              })}
+            </div>
+            <button
+              className="nav-btn"
+              onClick={goToNextMonth}
+              disabled={!canGoNext}
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
       </div>
 
       {getFilteredExpenses.length === 0 ? (

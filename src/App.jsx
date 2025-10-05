@@ -8,8 +8,15 @@ import DataManager from './components/DataManager';
 import TabNavigation from './components/TabNavigation';
 import './App.css';
 
+const ACTIVE_TAB_KEY = 'expense-tracker-active-tab';
+
 const App = () => {
-  const [activeTab, setActiveTab] = useState('expenses');
+  // Загружаем активный таб из sessionStorage или используем 'expenses' по умолчанию
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = sessionStorage.getItem(ACTIVE_TAB_KEY);
+    return savedTab || 'expenses';
+  });
+  
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -17,6 +24,11 @@ const App = () => {
     setExpenses(getExpenses());
     setCategories(getCategories());
   }, []);
+
+  // Сохраняем активный таб в sessionStorage при изменении
+  useEffect(() => {
+    sessionStorage.setItem(ACTIVE_TAB_KEY, activeTab);
+  }, [activeTab]);
 
   const refreshData = () => {
     setExpenses(getExpenses());

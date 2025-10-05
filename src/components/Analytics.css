@@ -8,6 +8,7 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 30px;
+  gap: 15px;
 }
 
 .analytics-header h2 {
@@ -45,6 +46,52 @@
   background: #4ECDC4;
   color: white;
   box-shadow: 0 2px 4px rgba(78, 205, 196, 0.3);
+}
+
+/* Навигатор по месяцам */
+.month-navigator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.current-month {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 180px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #4ECDC4;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #45b7aa;
+  transform: scale(1.1);
+}
+
+.nav-btn:disabled {
+  background: #e1e8ed;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .stats-cards {
@@ -126,6 +173,23 @@
   .period-btn {
     flex: 1;
     min-width: auto;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .month-navigator {
+    width: 100%;
+    padding: 8px 15px;
+  }
+  
+  .current-month {
+    font-size: 0.95rem;
+    min-width: 140px;
+  }
+  
+  .nav-btn {
+    width: 32px;
+    height: 32px;
   }
   
   .charts-container {
@@ -133,7 +197,7 @@
   }
   
   .chart-section {
-    padding: 15px;
+    padding: 8px;
   }
   
   .stats-cards {

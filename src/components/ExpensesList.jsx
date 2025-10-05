@@ -5,12 +5,14 @@ import {
   updateExpense,
   formatCurrency,
 } from "../utils/localStorage";
-import { Edit, Trash2, Check, X } from "lucide-react";
+import { Edit, Trash2, Check, X, Filter } from "lucide-react";
 import "./ExpensesList.css";
 
 const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [showFilter, setShowFilter] = useState(false);
 
   const categoriesMap = useMemo(() => {
     return categories.reduce((acc, cat) => {
@@ -18,6 +20,37 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
       return acc;
     }, {});
   }, [categories]);
+
+  // Обработчик переключения категории в фильтре
+  const toggleCategory = (categoryName) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(categoryName)) {
+        return prev.filter((cat) => cat !== categoryName);
+      } else {
+        return [...prev, categoryName];
+      }
+    });
+  };
+
+  // Выбрать все категории
+  const selectAllCategories = () => {
+    setSelectedCategories(categories.map((cat) => cat.name));
+  };
+
+  // Сбросить фильтр
+  const clearFilter = () => {
+    setSelectedCategories([]);
+  };
+
+  // Фильтруем расходы по выбранным категориям
+  const filteredExpenses = useMemo(() => {
+    if (selectedCategories.length === 0) {
+      return expenses;
+    }
+    return expenses.filter((expense) =>
+      selectedCategories.includes(expense.category)
+    );
+  }, [expenses, selectedCategories]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -49,7 +82,7 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
   const groupedExpenses = useMemo(() => {
     const groups = {};
 
-    expenses.forEach((expense) => {
+    filteredExpenses.forEach((expense) => {
       const dateKey = new Date(expense.date).toDateString();
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -67,7 +100,7 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
         ),
         total: groups[dateKey].reduce((sum, exp) => sum + exp.amount, 0),
       }));
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   const handleDelete = (expenseId) => {
     if (window.confirm("Вы уверены, что хотите удалить этот расход?")) {
@@ -129,161 +162,238 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
         <div className="total-amount">
           Всего:{" "}
           <strong>
-            {formatCurrency(expenses.reduce((sum, exp) => sum + exp.amount, 0))}
+            {formatCurrency(
+              filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0)
+            )}
           </strong>
         </div>
       </div>
 
-      {groupedExpenses.map((group) => (
-        <div key={group.date} className="expense-day-group">
-          <div className="day-header">
-            <h3>{formatDate(group.date)}</h3>
-            <span className="day-total">{formatCurrency(group.total)}</span>
-          </div>
+      {/* Фильтр по категориям */}
+      <div className="filter-section">
+        <button
+          className={`filter-toggle ${showFilter ? "active" : ""}`}
+          onClick={() => setShowFilter(!showFilter)}
+        >
+          <Filter size={16} />
+          Фильтр по категориям
+          {selectedCategories.length > 0 && (
+            <span className="filter-badge">{selectedCategories.length}</span>
+          )}
+        </button>
 
-          <div className="expenses-day-list">
-            {group.expenses.map((expense) => {
-              const category = categoriesMap[expense.category];
-              const isEditing = editingId === expense.id;
+        {showFilter && (
+          <div className="filter-panel">
+            <div className="filter-actions">
+              <button
+                className="filter-action-btn"
+                onClick={selectAllCategories}
+              >
+                Выбрать все
+              </button>
+              <button className="filter-action-btn" onClick={clearFilter}>
+                Сбросить
+              </button>
+            </div>
 
-              return (
-                <div
-                  key={expense.id}
-                  className={`expense-item ${isEditing ? "editing" : ""}`}
+            <div className="category-filters">
+              {categories.map((category) => (
+                <label
+                  key={category.id}
+                  className="category-filter-item"
+                  style={{
+                    borderColor: selectedCategories.includes(category.name)
+                      ? category.color
+                      : "#e1e8ed",
+                  }}
                 >
-                  <div
-                    className="expense-category"
-                    style={{ backgroundColor: category?.color || "#ccc" }}
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(category.name)}
+                    onChange={() => toggleCategory(category.name)}
+                  />
+                  <span
+                    className="category-filter-icon"
+                    style={{ backgroundColor: category.color }}
                   >
-                    <span className="category-icon">
-                      {category?.icon || "📦"}
-                    </span>
-                  </div>
+                    {category.icon}
+                  </span>
+                  <span className="category-filter-name">{category.name}</span>
+                  <span className="category-filter-count">
+                    (
+                    {
+                      expenses.filter((exp) => exp.category === category.name)
+                        .length
+                    }
+                    )
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
-                  {isEditing ? (
-                    <div className="expense-edit-form">
-                      <div className="edit-row">
-                        <select
-                          value={editForm.category}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              category: e.target.value,
-                            }))
-                          }
-                          className="edit-select"
-                        >
-                          {categories.map((cat) => (
-                            <option key={cat.id} value={cat.name}>
-                              {cat.icon} {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          value={editForm.amount}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              amount: e.target.value,
-                            }))
-                          }
-                          className="edit-amount"
-                          placeholder="Сумма"
-                          min="0"
-                          step="0.01"
-                        />
+      {filteredExpenses.length === 0 ? (
+        <div className="no-results">
+          <span className="empty-emoji">🔍</span>
+          <h3>Нет расходов в выбранных категориях</h3>
+          <p>Попробуйте выбрать другие категории</p>
+        </div>
+      ) : (
+        <>
+          {groupedExpenses.map((group) => (
+            <div key={group.date} className="expense-day-group">
+              <div className="day-header">
+                <h3>{formatDate(group.date)}</h3>
+                <span className="day-total">{formatCurrency(group.total)}</span>
+              </div>
+
+              <div className="expenses-day-list">
+                {group.expenses.map((expense) => {
+                  const category = categoriesMap[expense.category];
+                  const isEditing = editingId === expense.id;
+
+                  return (
+                    <div
+                      key={expense.id}
+                      className={`expense-item ${isEditing ? "editing" : ""}`}
+                    >
+                      <div
+                        className="expense-category"
+                        style={{ backgroundColor: category?.color || "#ccc" }}
+                      >
+                        <span className="category-icon">
+                          {category?.icon || "📦"}
+                        </span>
                       </div>
-                      <div className="edit-row">
-                        <input
-                          type="text"
-                          value={editForm.description}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              description: e.target.value,
-                            }))
-                          }
-                          className="edit-description"
-                          placeholder="Описание"
-                        />
-                        <input
-                          type="date"
-                          value={editForm.date}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              date: e.target.value,
-                            }))
-                          }
-                          className="edit-date"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="expense-details">
-                      <div className="expense-category-main">
-                        {expense.category}
-                      </div>
-                      {expense.description !== expense.category && (
-                        <div className="expense-description">
-                          {expense.description}
+
+                      {isEditing ? (
+                        <div className="expense-edit-form">
+                          <div className="edit-row">
+                            <select
+                              value={editForm.category}
+                              onChange={(e) =>
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  category: e.target.value,
+                                }))
+                              }
+                              className="edit-select"
+                            >
+                              {categories.map((cat) => (
+                                <option key={cat.id} value={cat.name}>
+                                  {cat.icon} {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              type="number"
+                              value={editForm.amount}
+                              onChange={(e) =>
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  amount: e.target.value,
+                                }))
+                              }
+                              className="edit-amount"
+                              placeholder="Сумма"
+                              min="0"
+                              step="0.01"
+                            />
+                          </div>
+                          <div className="edit-row">
+                            <input
+                              type="text"
+                              value={editForm.description}
+                              onChange={(e) =>
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  description: e.target.value,
+                                }))
+                              }
+                              className="edit-description"
+                              placeholder="Описание"
+                            />
+                            <input
+                              type="date"
+                              value={editForm.date}
+                              onChange={(e) =>
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  date: e.target.value,
+                                }))
+                              }
+                              className="edit-date"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="expense-details">
+                          <div className="expense-category-main">
+                            {expense.category}
+                          </div>
+                          {expense.description !== expense.category && (
+                            <div className="expense-description">
+                              {expense.description}
+                            </div>
+                          )}
+                          <div className="expense-time">
+                            {formatTime(expense.createdAt)}
+                          </div>
                         </div>
                       )}
-                      <div className="expense-time">
-                        {formatTime(expense.createdAt)}
+
+                      <div className="expense-actions">
+                        {isEditing ? (
+                          <>
+                            <button
+                              className="action-btn save-btn"
+                              onClick={() => handleSaveEdit(expense.id)}
+                              title="Сохранить"
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button
+                              className="action-btn cancel-btn"
+                              onClick={handleCancelEdit}
+                              title="Отменить"
+                            >
+                              <X size={16} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="expense-amount">
+                              -{formatCurrency(expense.amount)}
+                            </div>
+                            <div className="action-buttons">
+                              <button
+                                className="action-btn edit-btn"
+                                onClick={() => handleEdit(expense)}
+                                title="Редактировать"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                className="action-btn delete-btn"
+                                onClick={() => handleDelete(expense.id)}
+                                title="Удалить"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                  )}
-
-                  <div className="expense-actions">
-                    {isEditing ? (
-                      <>
-                        <button
-                          className="action-btn save-btn"
-                          onClick={() => handleSaveEdit(expense.id)}
-                          title="Сохранить"
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button
-                          className="action-btn cancel-btn"
-                          onClick={handleCancelEdit}
-                          title="Отменить"
-                        >
-                          <X size={16} />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="expense-amount">
-                          -{formatCurrency(expense.amount)}
-                        </div>
-                        <div className="action-buttons">
-                          <button
-                            className="action-btn edit-btn"
-                            onClick={() => handleEdit(expense)}
-                            title="Редактировать"
-                          >
-                            <Edit size={14} />
-                          </button>
-                          <button
-                            className="action-btn delete-btn"
-                            onClick={() => handleDelete(expense.id)}
-                            title="Удалить"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 };
