@@ -82,7 +82,6 @@ const Analytics = ({ expenses, categories }) => {
     let startDate, endDate;
 
     if (selectedPeriod === "week") {
-      // Понедельник текущей недели
       const today = new Date();
       const day = today.getDay();
       const diff = today.getDate() - day + (day === 0 ? -6 : 1);
@@ -91,7 +90,6 @@ const Analytics = ({ expenses, categories }) => {
       endDate = new Date();
       endDate.setHours(23, 59, 59, 999);
     } else if (selectedPeriod === "month") {
-      // Первое число выбранного месяца
       startDate = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
@@ -99,17 +97,14 @@ const Analytics = ({ expenses, categories }) => {
       );
       startDate.setHours(0, 0, 0, 0);
 
-      // Проверяем, текущий ли это месяц
       const isCurrentMonth =
         selectedDate.getFullYear() === now.getFullYear() &&
         selectedDate.getMonth() === now.getMonth();
 
       if (isCurrentMonth) {
-        // Если текущий месяц - до сегодняшнего дня
         endDate = new Date();
         endDate.setHours(23, 59, 59, 999);
       } else {
-        // Если не текущий - до последнего дня месяца
         endDate = new Date(
           selectedDate.getFullYear(),
           selectedDate.getMonth() + 1,
@@ -118,7 +113,6 @@ const Analytics = ({ expenses, categories }) => {
         endDate.setHours(23, 59, 59, 999);
       }
     } else {
-      // 'all' или default
       return expenses;
     }
 
@@ -168,16 +162,13 @@ const Analytics = ({ expenses, categories }) => {
         1
       );
 
-      // Проверяем, текущий ли это месяц
       const isCurrentMonth =
         selectedDate.getFullYear() === now.getFullYear() &&
         selectedDate.getMonth() === now.getMonth();
 
       if (isCurrentMonth) {
-        // Если текущий месяц - количество дней до сегодня
         days = now.getDate();
       } else {
-        // Если не текущий - все дни месяца
         days = new Date(
           selectedDate.getFullYear(),
           selectedDate.getMonth() + 1,
@@ -185,7 +176,6 @@ const Analytics = ({ expenses, categories }) => {
         ).getDate();
       }
     } else {
-      // 'all' или default
       if (getFilteredExpenses.length === 0) return { dates: [], values: [] };
       const dates = getFilteredExpenses.map((exp) => new Date(exp.date));
       startDate = new Date(Math.min(...dates));
@@ -195,14 +185,12 @@ const Analytics = ({ expenses, categories }) => {
 
     const dailyTotals = {};
 
-    // Инициализируем все дни нулями
     for (let i = 0; i < days; i++) {
       const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
       const dateKey = date.toISOString().split("T")[0];
       dailyTotals[dateKey] = 0;
     }
 
-    // Заполняем данными
     getFilteredExpenses.forEach((expense) => {
       const dateKey = new Date(expense.date).toISOString().split("T")[0];
       dailyTotals[dateKey] = (dailyTotals[dateKey] || 0) + expense.amount;
@@ -234,6 +222,39 @@ const Analytics = ({ expenses, categories }) => {
     };
   }, [getFilteredExpenses, selectedPeriod, selectedDate]);
 
+  // Данные для столбчатого графика по месяцам
+  const monthlyData = useMemo(() => {
+    if (!expenses.length) return { months: [], values: [], rawMonths: [] };
+
+    const monthlyTotals = {};
+
+    expenses.forEach((expense) => {
+      const date = new Date(expense.date);
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}`;
+      monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + expense.amount;
+    });
+
+    const sortedMonths = Object.keys(monthlyTotals).sort();
+    const lastMonths = sortedMonths.slice(-12);
+
+    const formatMonth = (monthKey) => {
+      const [year, month] = monthKey.split("-");
+      const date = new Date(parseInt(year), parseInt(month) - 1);
+      return date.toLocaleDateString("ru-RU", {
+        month: "short",
+        year: isMobile ? undefined : "numeric",
+      });
+    };
+
+    return {
+      months: lastMonths.map(formatMonth),
+      values: lastMonths.map((month) => monthlyTotals[month]),
+      rawMonths: lastMonths,
+    };
+  }, [expenses, isMobile]);
+
   // Получаем название периода для отображения
   const getPeriodTitle = () => {
     if (selectedPeriod === "week") {
@@ -243,7 +264,6 @@ const Analytics = ({ expenses, categories }) => {
         month: "long",
         year: "numeric",
       });
-
       return `за ${monthStr}`;
     } else {
       return "за все время";
@@ -252,7 +272,7 @@ const Analytics = ({ expenses, categories }) => {
 
   const totalAmount = categoryData.reduce((sum, item) => sum + item.value, 0);
 
-  // Опции для круговой диаграммы с адаптацией под мобильные
+  // Опции для круговой диаграммы
   const pieOption = {
     title: {
       text: `Расходы по категориям ${getPeriodTitle()}`,
@@ -283,7 +303,6 @@ const Analytics = ({ expenses, categories }) => {
         const item = categoryData.find((d) => d.name === name);
         if (!item || totalAmount === 0) return name;
         const percent = ((item.value / totalAmount) * 100).toFixed(1);
-
         return `${name}\n${formatCurrency(item.value)} (${percent}%)`;
       },
       textStyle: {
@@ -308,7 +327,6 @@ const Analytics = ({ expenses, categories }) => {
           position: "outside",
           formatter: (params) => {
             const percent = params.percent;
-
             if (isMobile) {
               return `${percent}%\n${params.name}`;
             } else {
@@ -327,7 +345,6 @@ const Analytics = ({ expenses, categories }) => {
             fontWeight: "bold",
             formatter: (params) => {
               const percent = params.percent;
-
               if (isMobile) {
                 return `${percent}%\n${params.name}`;
               } else {
@@ -403,6 +420,88 @@ const Analytics = ({ expenses, categories }) => {
     ],
   };
 
+  // Опции для столбчатого графика по месяцам
+  const barOption = {
+    title: {
+      text: "Динамика расходов по месяцам",
+      textStyle: {
+        fontSize: isMobile ? 14 : 16,
+        fontWeight: "bold",
+      },
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: "shadow",
+      },
+      formatter: (params) => {
+        const value = params[0].value;
+        const monthIndex = params[0].dataIndex;
+        const monthKey = monthlyData.rawMonths[monthIndex];
+        const [year, month] = monthKey.split("-");
+        const date = new Date(parseInt(year), parseInt(month) - 1);
+        const monthName = date.toLocaleDateString("ru-RU", {
+          month: "long",
+          year: "numeric",
+        });
+        return `${monthName}: ${formatCurrency(value)}`;
+      },
+    },
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "3%",
+      containLabel: true,
+    },
+    xAxis: {
+      type: "category",
+      data: monthlyData.months,
+      axisLabel: {
+        rotate: isMobile ? 45 : 0,
+        fontSize: isMobile ? 9 : 10,
+      },
+    },
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        formatter: (value) => `${value} BYN`,
+        fontSize: isMobile ? 8 : 10,
+      },
+    },
+    series: [
+      {
+        name: "Расходы",
+        type: "bar",
+        data: monthlyData.values,
+        itemStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: "#4ECDC4",
+              },
+              {
+                offset: 1,
+                color: "#45b7aa",
+              },
+            ],
+          },
+          borderRadius: [4, 4, 0, 0],
+        },
+        emphasis: {
+          itemStyle: {
+            color: "#3da89f",
+          },
+        },
+      },
+    ],
+  };
+
   const filteredTotalAmount = useMemo(() => {
     return getFilteredExpenses.reduce(
       (sum, expense) => sum + expense.amount,
@@ -417,6 +516,11 @@ const Analytics = ({ expenses, categories }) => {
     ).size;
     return filteredTotalAmount / Math.max(uniqueDays, 1);
   }, [getFilteredExpenses, filteredTotalAmount]);
+
+  const maxDailyExpense = useMemo(() => {
+    if (dailyData.values.length === 0) return 0;
+    return Math.max(...dailyData.values);
+  }, [dailyData.values]);
 
   if (expenses.length === 0) {
     return (
@@ -514,8 +618,10 @@ const Analytics = ({ expenses, categories }) => {
               <div className="stat-label">Средние в день</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{categoryData.length}</div>
-              <div className="stat-label">Активных категорий</div>
+              <div className="stat-value">
+                {formatCurrency(maxDailyExpense)}
+              </div>
+              <div className="stat-label">Максимум в день</div>
             </div>
           </div>
 
@@ -535,6 +641,16 @@ const Analytics = ({ expenses, categories }) => {
                 opts={{ renderer: "svg" }}
               />
             </div>
+
+            {monthlyData.months.length > 0 && (
+              <div className="chart-section">
+                <ReactECharts
+                  option={barOption}
+                  style={{ height: "400px", width: "100%" }}
+                  opts={{ renderer: "svg" }}
+                />
+              </div>
+            )}
           </div>
         </>
       )}
