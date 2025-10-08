@@ -1,16 +1,39 @@
-# React + Vite
+# 💰 MoneyFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Simple expense tracker with charts and analytics, built 100% with AI
 
-Currently, two official plugins are available:
+## 🌐 Live Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**[MoneyFlow →](https://money-flow-money.netlify.app/)**
 
-## React Compiler
+> Production version deployed and ready to use
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
+## 🤖 AI-Generated Codebase
 
-## Expanding the ESLint configuration
+This entire project was generated through conversational prompts using **Claude Sonnet 4.5**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Tech Stack
+
+- **React 19** - Modern UI framework
+- **Apache ECharts** - data visualization via `echarts-for-react`
+
+## ✨ Features
+
+- 📊 **Expense Tracking** - Daily expense logging with category management
+- 📈 **Analytics Dashboard** - Multiple chart types (pie, line, bar)
+- 🎨 **Category Filtering** - Multi-select filtering with custom categories
+- 📅 **Period Selection** - View data by week, month, or all time
+- 📱 **Mobile Optimized** - Responsive design for all devices
+- 💾 **Import/Export** - JSON-based data transfer between devices
+
+## 📊 Visualizations
+
+- **Pie Chart** - Expense breakdown by category with percentages
+- **Line Chart** - Daily spending trends
+- **Bar Chart** - Monthly spending comparison (last 12 months)
+
+## 🎯 AI Development Details
+
+- Model Used: Claude Sonnet 4.5
+- Zero manual coding - 100% AI-generated
