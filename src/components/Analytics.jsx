@@ -538,11 +538,53 @@ const Analytics = ({ expenses, categories }) => {
 
   const averageDaily = useMemo(() => {
     if (getFilteredExpenses.length === 0) return 0;
-    const uniqueDays = new Set(
-      getFilteredExpenses.map((exp) => new Date(exp.date).toDateString())
-    ).size;
-    return filteredTotalAmount / Math.max(uniqueDays, 1);
-  }, [getFilteredExpenses, filteredTotalAmount]);
+
+    const now = new Date();
+    let totalDays;
+
+    if (selectedPeriod === "week") {
+      // Для недели - 7 дней или меньше если неделя еще идет
+      const today = new Date();
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      const weekStart = new Date(today.setDate(diff));
+
+      const daysPassed =
+        Math.ceil((now - weekStart) / (1000 * 60 * 60 * 24)) + 1;
+      totalDays = Math.min(daysPassed, 7);
+    } else if (selectedPeriod === "month") {
+      const isCurrentMonth =
+        selectedDate.getFullYear() === now.getFullYear() &&
+        selectedDate.getMonth() === now.getMonth();
+
+      if (isCurrentMonth) {
+        // Для текущего месяца - количество прошедших дней (включая сегодня)
+        totalDays = now.getDate();
+      } else {
+        // Для прошлых месяцев - все дни месяца
+        totalDays = new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth() + 1,
+          0
+        ).getDate();
+      }
+    } else {
+      // Для "все время" - количество дней от первого до последнего расхода
+      if (expenses.length === 0) return 0;
+      const dates = expenses.map((exp) => new Date(exp.date));
+      const firstDate = new Date(Math.min(...dates));
+      const lastDate = new Date(Math.max(...dates));
+      totalDays = Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    return filteredTotalAmount / Math.max(totalDays, 1);
+  }, [
+    getFilteredExpenses,
+    filteredTotalAmount,
+    selectedPeriod,
+    selectedDate,
+    expenses,
+  ]);
 
   const maxDailyExpense = useMemo(() => {
     if (dailyData.values.length === 0) return 0;
