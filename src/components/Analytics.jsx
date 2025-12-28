@@ -342,7 +342,7 @@ const Analytics = ({ expenses, categories }) => {
         name: "Расходы",
         type: "pie",
         radius: isMobile ? ["25%", "60%"] : ["40%", "70%"],
-        center: isMobile ? ["50%", "27%"] : ["40%", "50%"],
+        center: isMobile ? ["50%", "27%"] : ["35%", "50%"],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 5,
