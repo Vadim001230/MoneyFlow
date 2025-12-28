@@ -2,13 +2,28 @@
 import React, { useMemo, useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { formatCurrency } from "../utils/localStorage";
+import {
+  getAnalyticsPeriod,
+  setAnalyticsPeriod,
+} from "../utils/sessionStorage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./Analytics.css";
 
 const Analytics = ({ expenses, categories }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [isMobile, setIsMobile] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Загружаем сохраненный период
+  const savedPeriod = getAnalyticsPeriod();
+  const [selectedPeriod, setSelectedPeriod] = useState(savedPeriod.type);
+  const [selectedDate, setSelectedDate] = useState(new Date(savedPeriod.date));
+
+  // Сохраняем период при изменении
+  useEffect(() => {
+    setAnalyticsPeriod({
+      type: selectedPeriod,
+      date: selectedDate.toISOString(),
+    });
+  }, [selectedPeriod, selectedDate]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -66,12 +81,24 @@ const Analytics = ({ expenses, categories }) => {
     });
   };
 
-  // Проверка, можно ли перейти к следующему месяцу
+  // Проверка, можно ли перейти к следующему месяцу - ИСПРАВЛЕНО
   const canGoNext = useMemo(() => {
     const now = new Date();
-    const currentMonthYear = `${now.getFullYear()}-${now.getMonth()}`;
-    const selectedMonthYear = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
-    return selectedMonthYear < currentMonthYear;
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth();
+
+    // Если год выбранного периода меньше текущего - можно идти вперед
+    if (selectedYear < currentYear) return true;
+
+    // Если год тот же, проверяем месяц
+    if (selectedYear === currentYear && selectedMonth < currentMonth)
+      return true;
+
+    // Иначе нельзя
+    return false;
   }, [selectedDate]);
 
   // Функция для фильтрации расходов по периоду
