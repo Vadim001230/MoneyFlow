@@ -575,3 +575,116 @@
     font-size: 0.95rem;
   }
 }
+
+/* Селектор периода */
+.period-selector-section {
+  margin-bottom: 20px;
+}
+
+.period-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.period-type-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: white;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  transition: all 0.2s ease;
+}
+
+.period-type-btn:hover {
+  border-color: #4ecdc4;
+  background: rgba(78, 205, 196, 0.05);
+}
+
+.period-type-btn.active {
+  background: #4ecdc4;
+  border-color: #4ecdc4;
+  color: white;
+}
+
+.month-navigator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: white;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+}
+
+.nav-month-btn {
+  background: transparent;
+  border: none;
+  color: #4ecdc4;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.nav-month-btn:hover:not(:disabled) {
+  background: rgba(78, 205, 196, 0.1);
+}
+
+.nav-month-btn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.current-period {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+  text-transform: capitalize;
+}
+
+.all-period-label {
+  text-align: center;
+  padding: 12px;
+  background: rgba(78, 205, 196, 0.1);
+  border-radius: 8px;
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 768px) {
+  .period-controls {
+    gap: 8px;
+  }
+
+  .period-type-btn {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+
+  .month-navigator {
+    padding: 10px 15px;
+  }
+
+  .current-period {
+    font-size: 14px;
+  }
+
+  .all-period-label {
+    font-size: 13px;
+    padding: 10px;
+  }
+}

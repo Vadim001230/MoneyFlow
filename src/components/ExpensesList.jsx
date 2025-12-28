@@ -1,11 +1,21 @@
 // src/components/ExpensesList.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   deleteExpense,
   updateExpense,
   formatCurrency,
 } from "../utils/localStorage";
-import { Edit, Trash2, Check, X, Filter } from "lucide-react";
+import { getExpensesPeriod, setExpensesPeriod } from "../utils/sessionStorage";
+import {
+  Edit,
+  Trash2,
+  Check,
+  X,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+} from "lucide-react";
 import "./ExpensesList.css";
 
 const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
@@ -13,6 +23,12 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
   const [editForm, setEditForm] = useState({});
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
+  const [period, setPeriod] = useState(getExpensesPeriod());
+
+  // Сохраняем период при изменении
+  useEffect(() => {
+    setExpensesPeriod(period);
+  }, [period]);
 
   const categoriesMap = useMemo(() => {
     return categories.reduce((acc, cat) => {
@@ -20,6 +36,95 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
       return acc;
     }, {});
   }, [categories]);
+
+  // Получаем список доступных месяцев из расходов
+  const availableMonths = useMemo(() => {
+    if (!expenses.length) return [];
+
+    const monthsSet = new Set();
+    expenses.forEach((exp) => {
+      const date = new Date(exp.date);
+      monthsSet.add(`${date.getFullYear()}-${date.getMonth()}`);
+    });
+
+    const months = Array.from(monthsSet)
+      .map((key) => {
+        const [year, month] = key.split("-");
+        return { year: parseInt(year), month: parseInt(month) };
+      })
+      .sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        return b.month - a.month;
+      });
+
+    return months;
+  }, [expenses]);
+
+  // Функции навигации по месяцам
+  const goToPreviousMonth = () => {
+    setPeriod((prev) => {
+      const newMonth = prev.month - 1;
+      if (newMonth < 0) {
+        return { type: "month", year: prev.year - 1, month: 11 };
+      }
+      return { type: "month", year: prev.year, month: newMonth };
+    });
+  };
+
+  const goToNextMonth = () => {
+    setPeriod((prev) => {
+      const newMonth = prev.month + 1;
+      if (newMonth > 11) {
+        return { type: "month", year: prev.year + 1, month: 0 };
+      }
+      return { type: "month", year: prev.year, month: newMonth };
+    });
+  };
+
+  const goToCurrentMonth = () => {
+    const now = new Date();
+    setPeriod({
+      type: "month",
+      year: now.getFullYear(),
+      month: now.getMonth(),
+    });
+  };
+
+  const showAllPeriod = () => {
+    setPeriod({ type: "all" });
+  };
+
+  // Проверка, можно ли идти вперед
+  const canGoNext = useMemo(() => {
+    if (period.type === "all") return false;
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    // Если год выбранного периода меньше текущего - можно идти вперед
+    if (period.year < currentYear) return true;
+
+    // Если год тот же, проверяем месяц
+    if (period.year === currentYear && period.month < currentMonth) return true;
+
+    // Иначе нельзя
+    return false;
+  }, [period]);
+
+  // Фильтруем расходы по периоду
+  const periodFilteredExpenses = useMemo(() => {
+    if (period.type === "all") {
+      return expenses;
+    }
+
+    return expenses.filter((expense) => {
+      const date = new Date(expense.date);
+      return (
+        date.getFullYear() === period.year && date.getMonth() === period.month
+      );
+    });
+  }, [expenses, period]);
 
   // Обработчик переключения категории в фильтре
   const toggleCategory = (categoryName) => {
@@ -45,12 +150,12 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
   // Фильтруем расходы по выбранным категориям
   const filteredExpenses = useMemo(() => {
     if (selectedCategories.length === 0) {
-      return expenses;
+      return periodFilteredExpenses;
     }
-    return expenses.filter((expense) =>
+    return periodFilteredExpenses.filter((expense) =>
       selectedCategories.includes(expense.category)
     );
-  }, [expenses, selectedCategories]);
+  }, [periodFilteredExpenses, selectedCategories]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -143,6 +248,18 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
     setEditForm({});
   };
 
+  // Форматирование периода для отображения
+  const getPeriodTitle = () => {
+    if (period.type === "all") {
+      return "за все время";
+    }
+    const date = new Date(period.year, period.month);
+    return date.toLocaleDateString("ru-RU", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   if (expenses.length === 0) {
     return (
       <div className="expenses-empty">
@@ -167,6 +284,53 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
             )}
           </strong>
         </div>
+      </div>
+
+      {/* Селектор периода */}
+      <div className="period-selector-section">
+        <div className="period-controls">
+          <button
+            className={`period-type-btn ${
+              period.type === "month" ? "active" : ""
+            }`}
+            onClick={goToCurrentMonth}
+          >
+            <Calendar size={16} />
+            Месяц
+          </button>
+          <button
+            className={`period-type-btn ${
+              period.type === "all" ? "active" : ""
+            }`}
+            onClick={showAllPeriod}
+          >
+            Все время
+          </button>
+        </div>
+
+        {period.type === "month" && (
+          <div className="month-navigator">
+            <button
+              className="nav-month-btn"
+              onClick={goToPreviousMonth}
+              disabled={availableMonths.length === 0}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <div className="current-period">{getPeriodTitle()}</div>
+            <button
+              className="nav-month-btn"
+              onClick={goToNextMonth}
+              disabled={!canGoNext}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        )}
+
+        {period.type === "all" && (
+          <div className="all-period-label">Показаны все расходы</div>
+        )}
       </div>
 
       {/* Фильтр по категориям */}
@@ -222,8 +386,9 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
                   <span className="category-filter-count">
                     (
                     {
-                      expenses.filter((exp) => exp.category === category.name)
-                        .length
+                      periodFilteredExpenses.filter(
+                        (exp) => exp.category === category.name
+                      ).length
                     }
                     )
                   </span>
@@ -237,8 +402,12 @@ const ExpensesList = ({ expenses, categories, onExpensesChange }) => {
       {filteredExpenses.length === 0 ? (
         <div className="no-results">
           <span className="empty-emoji">🔍</span>
-          <h3>Нет расходов в выбранных категориях</h3>
-          <p>Попробуйте выбрать другие категории</p>
+          <h3>Нет расходов {getPeriodTitle()}</h3>
+          <p>
+            {selectedCategories.length > 0
+              ? "Попробуйте выбрать другие категории"
+              : "В этом периоде нет расходов"}
+          </p>
         </div>
       ) : (
         <>
