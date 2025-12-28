@@ -297,7 +297,7 @@ const Analytics = ({ expenses, categories }) => {
       left: isMobile ? "center" : undefined,
       right: isMobile ? undefined : 10,
       top: isMobile ? undefined : 20,
-      bottom: isMobile ? 20 : 20,
+      bottom: 20,
       itemGap: isMobile ? 15 : 10,
       formatter: (name) => {
         const item = categoryData.find((d) => d.name === name);
@@ -314,8 +314,8 @@ const Analytics = ({ expenses, categories }) => {
       {
         name: "Расходы",
         type: "pie",
-        radius: isMobile ? ["30%", "60%"] : ["40%", "70%"],
-        center: isMobile ? ["50%", "40%"] : ["40%", "50%"],
+        radius: isMobile ? ["25%", "60%"] : ["40%", "70%"],
+        center: isMobile ? ["50%", "27%"] : ["40%", "50%"],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 5,
@@ -629,7 +629,7 @@ const Analytics = ({ expenses, categories }) => {
             <div className="chart-section">
               <ReactECharts
                 option={pieOption}
-                style={{ height: isMobile ? "550px" : "500px", width: "100%" }}
+                style={{ height: isMobile ? "700px" : "500px", width: "100%" }}
                 opts={{ renderer: "svg" }}
               />
             </div>
